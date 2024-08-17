@@ -24,6 +24,7 @@ structure = {
     "docs": {},
     ".env": None,
     ".gitignore": "https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore",
+    "setup.py": None,
     "requirements.txt": None,
     "README.md": None,
 }
