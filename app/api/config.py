@@ -1,19 +1,25 @@
-# import os
-
-# class Config:
-#     MODEL_PATH = os.getenv("MODEL_PATH", "path/to/your/model")
-#     DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/dbname")
-
 import os
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
+
 class Settings(BaseSettings):
-    MODEL_PATH: str = "/models/microsoft/Phi-3-mini-4k-instruct"
+    MODEL_PATH: str = Field(
+        default="./models/microsoft/Phi-3-mini-4k-instruct",
+        description="The path to the model to use",
+    )
+    BACKEND_TYPE: str = Field(
+        default="transformers",
+        description="The backend type to use, options: llama.cpp, Ollama, transformers, onnx",
+    )
     DATABASE_URL: str = "postgresql://user:password@localhost/dbname"
-    USE_ONNX: bool = True
+    HOST: str = Field(default="localhost", description="API address")
+    PORT: int = Field(default=8046, description="API port")
+    
     VERBOSE: bool = False
     TIMINGS: bool = False
-    MAX_NEW_TOKENS: int = 512
+    MAX_TOKENS: int = 2048
+    MAX_NEW_TOKENS: int = 1024
     DO_SAMPLE: bool = True
     TOP_P: float = 0.9
     TEMPERATURE: float = 0.7
@@ -21,6 +27,8 @@ class Settings(BaseSettings):
     MIN_LENGTH: int = 0
     TOP_K: int = 50
     REPETITION_PENALTY: float = 1.0
+    
+    LOAD_IN_8BITS: bool = False
 
     class Config:
         env_file = ".env"

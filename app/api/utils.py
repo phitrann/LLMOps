@@ -27,6 +27,12 @@ def get_vectorstore() -> Milvus:
 
     return vector_store
 
+async def search_relevant_documents(query: str, k: int = 5) -> list[Document]:
+    vectorstore = get_vectorstore()
+    retriever = vectorstore.as_retriever(search_kwargs={"k": k})
+
+    return await retriever.ainvoke(input=query)
+
 def combine_documents(
     docs: list[Document],
     document_prompt: PromptTemplate = PromptTemplate.from_template("{page_content}"),

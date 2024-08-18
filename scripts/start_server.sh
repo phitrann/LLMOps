@@ -11,7 +11,7 @@
 echo "Starting server on port 8045"
 
 # Start FastAPI server
-uvicorn app.api.main:app --host 0.0.0.0 --port 8045
+uvicorn app.api.main:app --host 0.0.0.0 --port 8046 --reload
 
 # Start Gradio app
 python -m app.frontend.gradio_app

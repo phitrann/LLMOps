@@ -4,6 +4,7 @@ This project uses FastAPI for the backend API, Gradio for the frontend, and Hugg
 
 ## Introduction
 
+
 ## Project Structure
 ```
 /LLMOps
@@ -67,6 +68,17 @@ __Main components__:
 
 6. __README.md__: Hướng dẫn sử dụng dự án, bao gồm cách cài đặt, chạy ứng dụng, và cách triển khai.
 
+## Models
+- The model used in this project is `microsoft/Phi-3-mini-4k-instruct`. Phi-3 Mini is a 3.8B parameters, lightweight, state-of-the-art open model trained with the Phi-3 datasets that includes both synthetic data and the filtered publicly available websites data with a focus on high-quality and reasoning dense properties.
+
+
+## Tech Stacks
+- FastAPI: A modern, fast (high-performance), web framework for building APIs with Python 3.6+ based on standard Python type hints.
+- Gradio: A Python library that allows you to quickly create UIs for your machine learning models.
+- Langchain: A Python library that provides components for building conversational AI systems.
+- Ollama: Serving for LLM inference.
+
+
 ## Requirements
 ### Prequisites
 1. Clone the repository
@@ -74,9 +86,23 @@ __Main components__:
 git clone https://github.com/phitrann/LLMOps.git
 ```
 
+2. Set up Ollama server
+```bash
+docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
+```
+
+3. Pull the Phi 3 Mini model
+```bash
+docker exec -it ollama ollama run phi3:instruct
+```
+
+4. Set up the MongoDB database
+```bash
+docker run -d -p 27017:27017 --name mongodb mongo
+```
+
 
 ### Installation
-
 
 #### Manual
 
@@ -87,7 +113,7 @@ pip install -e .
 pip install -r requirements.txt
 ```
 
-2. Download the model
+2. Download the model (Optional)
 ```bash
 python scripts/download_model.py
 ```
@@ -108,7 +134,7 @@ python scripts/init_db.py
 docker compose up -d
 ```
 
-#### Test the APIs
+### Test the APIs
 
 1. Send a message to the chatbot
 ```

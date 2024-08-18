@@ -18,3 +18,4 @@ torch
 sqlalchemy
 requests
 psycopg2-binary
+flash-attn==2.5.8

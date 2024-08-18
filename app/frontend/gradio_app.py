@@ -113,15 +113,17 @@ async def bot(history):
     url = f"{API_URL}/chat/sse/"
     headers = {'Accept': 'text/event-stream', 'Content-Type': 'application/json'}
     data = {"session_id": session_id, "message": history[-1][0]}  # Last user message
-
-    async with httpx.AsyncClient(timeout=None) as client:
+    
+    timeout = httpx.Timeout(10.0, connect=5.0, read=None)  # Set `read` to None for no timeout during streaming
+    async with httpx.AsyncClient(timeout=timeout) as client:
         try:
             async with client.stream("POST", url, headers=headers, json=data) as response:
                 response.raise_for_status()  # Raise an error for bad HTTP status
                 history[-1][1] = ""  # Start the AI's response as an empty string
                 async for chunk in response.aiter_text():
-                    if chunk:
+                    if chunk.strip():
                         try:
+                            # print(f"Received chunk: {chunk.strip()}")
                             data = json.loads(chunk.strip())
                             if data['type'] == 'streaming':
                                 # Update the bot's message in the history
@@ -137,6 +139,7 @@ async def bot(history):
                             history[-1][1] = f"Error decoding response: {chunk.strip()}"
                             yield history
                             break
+                    asyncio.sleep(0.1)
         except httpx.RequestError as e:
             history[-1][1] = f"Request error: {str(e)}"
             yield history
@@ -151,6 +154,11 @@ def download_history(history):
 # Step 4: Clear Chat History
 def clear_chat():
     return []
+
+# Helper function to run async bot
+async def run_bot(history):
+    async for updated_history in bot(history):
+        return updated_history
 
 # Gradio Interface
 with gr.Blocks() as demo:
@@ -176,11 +184,13 @@ with gr.Blocks() as demo:
             gr.Markdown("2. The chatbot will respond in real-time.")
             gr.Markdown("3. Use the buttons to clear or download the chat history.")
 
-    # Handle user message submission
+     # Handle user message submission
     msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
+        # lambda history: asyncio.run(run_bot(history)), chatbot, chatbot
         bot, chatbot, chatbot
     )
     submit_btn.click(user, [msg, chatbot], [msg, chatbot], queue=False).then(
+        # lambda history: asyncio.run(run_bot(history)), chatbot, chatbot
         bot, chatbot, chatbot
     )
     clear.click(clear_chat, None, chatbot, queue=False)
