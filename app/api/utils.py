@@ -53,7 +53,7 @@ def get_prompt(message: str, chat_history: list[dict[str, str]] = [], system_pro
     def get_chat_history(chat_history):
         texts = []
         for dialog in chat_history:
-            texts.append(f"<|user|>\n{dialog['user'].strip()}<|end]>\n<|assistant|>\n{dialog['assistant'].strip()}<|end|>\n")
+            texts.append(f"<|user|>\n{dialog['user_message'].strip()}<|end]>\n<|assistant|>\n{dialog['bot_response'].strip()}<|end|>\n")
         return "".join(texts)
     
     prompt += get_chat_history(chat_history)

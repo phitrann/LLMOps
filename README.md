@@ -118,23 +118,21 @@ pip install -r requirements.txt
 python scripts/download_model.py
 ```
 
-3. Start the server
+3. Start the MongoDB service
+```
+docker run -d -p 27017:27017 --name mongodb mongo:latest
+```
+
+4. Start the server
 ```bash
-./scripts/start_server.sh
+# Start FastAPI server
+uvicorn app.api.main:app --host 0.0.0.0 --port 8046 --reload
 
-# # Start FastAPI server
-# uvicorn app.api.main:app --host 0.0.0.0 --port 8046 --reload
-
-# # Start Gradio app
-# python -m app.frontend.gradio_app # gradio app/frontend/gradio_app.py
+# Start Gradio app
+python -m app.frontend.gradio_app # gradio app/frontend/gradio_app.py
 ```
 
-4. Initialize the database
-```
-python scripts/init_db.py
-```
-
-#### Docker
+#### Docker Compose (Not working yet)
 
 ```bash
 docker compose up -d
@@ -155,7 +153,7 @@ curl --no-buffer -X 'POST' 'http://localhost:8046/chat/sse/' -H 'accept: text/ev
 
 ## Usage
 
-- The API will be available at `http://localhost:8000`.
+- The API will be available at `http://localhost:8046`.
 - The Gradio interface will be available at `http://localhost:7860`.
 
 

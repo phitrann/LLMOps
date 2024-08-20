@@ -6,7 +6,7 @@ from app.db.history import ChatHistory
 chat_history = ChatHistory()
 
 # Mock MongoDB URI and Database name for testing
-TEST_MONGO_URI = "mongodb://admin:example@localhost:27017/"
+TEST_MONGO_URI = "mongodb://localhost:27017/"
 TEST_DB_NAME = "test_chatbot_db"
 
 @pytest.fixture(scope="module")

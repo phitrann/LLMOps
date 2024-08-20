@@ -67,42 +67,6 @@ async def run_bot(history):
     async for updated_history in bot(history):
         return updated_history
 
-# # Gradio Interface
-# with gr.Blocks() as demo:
-#     with gr.Row():
-#         with gr.Column(scale=3):
-#             chatbot = gr.Chatbot(label="Chat History")
-#             with gr.Row():
-#                 msg = gr.Textbox(
-#                     placeholder="Type your message here...",
-#                     show_label=False,
-#                     container=False,
-#                     scale=7,
-#                 )
-#                 submit_btn = gr.Button("Send")
-#             with gr.Row():
-#                 clear = gr.Button("Clear Chat")
-#                 download = gr.Button("Download Chat")
-#         with gr.Column(scale=1):
-#             gr.Markdown("## Chatbot Features")
-#             gr.Markdown("This chatbot can respond in real-time, providing streaming responses.")
-#             gr.Markdown("### Instructions:")
-#             gr.Markdown("1. Type a message and click 'Send' or press 'Enter'.")
-#             gr.Markdown("2. The chatbot will respond in real-time.")
-#             gr.Markdown("3. Use the buttons to clear or download the chat history.")
-
-#      # Handle user message submission
-#     msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
-#         # lambda history: asyncio.run(run_bot(history)), chatbot, chatbot
-#         bot, chatbot, chatbot
-#     )
-#     submit_btn.click(user, [msg, chatbot], [msg, chatbot], queue=False).then(
-#         # lambda history: asyncio.run(run_bot(history)), chatbot, chatbot
-#         bot, chatbot, chatbot
-#     )
-#     clear.click(clear_chat, None, chatbot, queue=False)
-#     download.click(download_history, chatbot)
-
 # Gradio Interface
 with gr.Blocks() as demo:
     with gr.Row():

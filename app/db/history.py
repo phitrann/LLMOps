@@ -19,7 +19,7 @@ class ChatHistory:
         return result.inserted_id
 
     def get_history(self, session_id: str, limit: int = 10) -> List[Dict[str, str]]:
-        history_cursor = self.collection.find({"session_id": session_id}).sort("timestamp", -1).limit(limit)
+        history_cursor = self.collection.find({"session_id": session_id}).sort("timestamp", 1).limit(limit)
         return [{"user_message": entry["user_message"], "bot_response": entry["bot_response"]} for entry in history_cursor]
 
     def delete_history(self, session_id: str) -> int:
