@@ -1,33 +1,39 @@
 version: '3'
 
 services:
-  app:
-    image: "llmops-app"
-    container_name: llmops-app
-    build: 
-      context: .
-      dockerfile: docker/Dockerfile
-    # working_dir: /app
+  # app:
+  #   image: "llmops-app"
+  #   container_name: llmops-app
+  #   build: 
+  #     context: .
+  #     dockerfile: docker/Dockerfile
+  #   # working_dir: /app
+  #   ports:
+  #     - "8045:8045"
+  #   environment:
+  #     - MODEL_PATH=/models/microsoft/Phi-3-mini-4k-instruct
+  #     - DATABASE_URL=postgresql://user:password@db/dbname
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - /space/hotel/phit/projects/LLMOps/models/microsoft/Phi-3-mini-4k-instruct:/models/microsoft/Phi-3-mini-4k-instruct
+  #     - .:/app
+  #   # command: [ "/bin/bash", "-c", "ls", "la" ]
+  #   depends_on:
+  #     - mongodb
+
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
     ports:
-      - "8045:8045"
-    environment:
-      - MODEL_PATH=/models/microsoft/Phi-3-mini-4k-instruct
-      - DATABASE_URL=postgresql://user:password@db/dbname
-    env_file:
-      - .env
+      - "27017:27017"
+    restart: always
+    # environment:
+    #   MONGO_INITDB_ROOT_USERNAME: admin
+    #   MONGO_INITDB_ROOT_PASSWORD: supersecret
     volumes:
-      - /space/hotel/phit/projects/LLMOps/models/microsoft/Phi-3-mini-4k-instruct:/models/microsoft/Phi-3-mini-4k-instruct
-      - .:/app
-    # command: [ "/bin/bash", "-c", "ls", "la" ]
+      - /space/hotel/phit/projects/.data:/data/db
 
-  db:
-    image: postgres:13
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: dbname
-    volumes:
-      - pgdata:/var/lib/postgresql/data
 
-volumes:
-  pgdata:
+

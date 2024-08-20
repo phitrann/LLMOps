@@ -40,3 +40,23 @@ def combine_documents(
 ) -> str:
     doc_strings = [format_document(doc, document_prompt) for doc in docs]
     return document_separator.join(doc_strings)
+
+async def format_chat_history(history: list[dict]) -> str:
+    return "\n".join([
+        f"User: {entry['user_message']}\nAssistant: {entry['bot_response']}"
+        for entry in history
+    ])
+    
+def get_prompt(message: str, chat_history: list[dict[str, str]] = [], system_prompt: str = "You are a helpful AI assistant.") -> str:
+    prompt = f"<|system|>\n{system_prompt}<|end|>\n"
+    
+    def get_chat_history(chat_history):
+        texts = []
+        for dialog in chat_history:
+            texts.append(f"<|user|>\n{dialog['user'].strip()}<|end]>\n<|assistant|>\n{dialog['assistant'].strip()}<|end|>\n")
+        return "".join(texts)
+    
+    prompt += get_chat_history(chat_history)
+    
+    prompt += f"<|user|>\n{message.strip()}<|end|>\n<|assistant|>"
+    return prompt

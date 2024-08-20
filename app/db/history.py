@@ -1,47 +1,30 @@
-import sqlite3
-from contextlib import contextmanager
-from langchain.schema import Document
-from typing import List
+from datetime import datetime
+from pymongo.database import Database
+from app.db.database import get_db
+from typing import List, Dict
 
-DB_PATH = "chat_history.db"
+class ChatHistory:
+    def __init__(self, db: Database = None):
+        self.db = db or get_db()
+        self.collection = self.db["chat_history"]
 
-@contextmanager
-def get_db_connection():
-    conn = sqlite3.connect(DB_PATH)
-    try:
-        yield conn
-    finally:
-        conn.close()
+    def save_history(self, session_id: str, user: str, assistant: str):
+        chat_entry = {
+            "session_id": session_id,
+            "timestamp": datetime.utcnow(),
+            "user_message": user,
+            "bot_response": assistant
+        }
+        result = self.collection.insert_one(chat_entry)
+        return result.inserted_id
 
-def create_table():
-    with get_db_connection() as conn:
-        conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS chat_history (
-                session_id TEXT,
-                message TEXT,
-                response TEXT
-            )
-            """
-        )
-        conn.commit()
+    def get_history(self, session_id: str, limit: int = 10) -> List[Dict[str, str]]:
+        history_cursor = self.collection.find({"session_id": session_id}).sort("timestamp", -1).limit(limit)
+        return [{"user_message": entry["user_message"], "bot_response": entry["bot_response"]} for entry in history_cursor]
 
-def store_message(session_id: str, message: str, response: str):
-    with get_db_connection() as conn:
-        conn.execute(
-            "INSERT INTO chat_history (session_id, message, response) VALUES (?, ?, ?)",
-            (session_id, message, response),
-        )
-        conn.commit()
+    def delete_history(self, session_id: str) -> int:
+        result = self.collection.delete_many({"session_id": session_id})
+        return result.deleted_count
 
-def retrieve_history(session_id: str) -> List[Document]:
-    with get_db_connection() as conn:
-        cur = conn.execute(
-            "SELECT message, response FROM chat_history WHERE session_id = ?",
-            (session_id,),
-        )
-        rows = cur.fetchall()
-    return [Document(page_content=f"User: {row[0]}\nAssistant: {row[1]}") for row in rows]
-
-# Initialize the database
-create_table()
+    def list_sessions(self) -> List[str]:
+        return self.collection.distinct("session_id")

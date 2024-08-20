@@ -1,7 +1,12 @@
+"""
+https://gist.github.com/jvelezmagic/f3653cc2ddab1c91e86751c8b423a1b6
+"""
+
 import logging
 from typing import AsyncGenerator, Literal
 from threading import Lock
 import asyncio
+from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI
 from fastapi.responses import StreamingResponse
@@ -16,48 +21,35 @@ from langchain_community.chat_message_histories import FileChatMessageHistory
 from app.inference.model import LLMModel
 from app.api.models import InferenceRequest, SSEResponse
 from app.api.config import Settings
-from app.api.utils import search_relevant_documents, combine_documents, get_settings
+from app.api.utils import search_relevant_documents, combine_documents, get_settings, get_prompt
+from app.db.history import ChatHistory
 
-
+@asynccontextmanager
+async def lifespan(app: FastAPI): # https://fastapi.tiangolo.com/fa/advanced/events/#lifespan
+    global settings 
+    settings = get_settings()
+    
+    global llm, chat_history
+    
+    logging.info("Loadding LLM model...")
+    llm = LLMModel(settings)
+    logging.info("LLM model loaded successfully.")
+    
+    chat_history = ChatHistory()
+    
+    yield
+    
+    del llm
+    del settings
+    
+    
 # Create or import the FastAPI app instance
 app = FastAPI(
     title="QA Chatbot Streaming using FastAPI, LangChain Expression Language , OpenAI, and Milvus",
     version="0.1.0",
+    lifespan=lifespan
 )
 
-@app.on_event("startup")
-async def startup_event():
-    global settings 
-    settings = get_settings()
-    
-    
-    global llm
-    
-    logging.info("Loadding LLM model...")
-    # llm = ChatOllama(model="phi3:instruct", base_url="http://172.16.87.75:11434")
-    llm = LLMModel(settings)
-    logging.info("LLM model loaded successfully.")
-    
-llama_outer_lock = Lock()
-llama_inner_lock = Lock()
-
-def get_llama():
-    # NOTE: This double lock allows the currently streaming llama model to
-    # check if any other requests are pending in the same thread and cancel
-    # the stream if so.
-    llama_outer_lock.acquire()
-    release_outer_lock = True
-    try:
-        llama_inner_lock.acquire()
-        try:
-            llama_outer_lock.release()
-            release_outer_lock = False
-            yield llm
-        finally:
-            llama_inner_lock.release()
-    finally:
-        if release_outer_lock:
-            llama_outer_lock.release()
     
     
 async def generate_standalone_question(
@@ -71,46 +63,33 @@ Follow Up Input: {question}
 Standalone question:"""
     )
     
-    # chain = prompt | llm | StrOutputParser()  # type: ignore
-
-    # return await chain.ainvoke(  # type: ignore
-    #     {
-    #         "chat_history": chat_history,
-    #         "question": question,
-    #     }
-    # )
     result = await llm(prompt, chat_history=chat_history, question=question)
     return str(result)
     
-    
-
-from threading import Thread
+from queue import Empty
+# Using run_in_threadpool
+from starlette.concurrency import run_in_threadpool
 async def generate_response(
-    context: str, chat_memory: BaseChatMessageHistory, message: str, settings: Settings
+    context: str, chat_memory: list[dict[str, str]], message: str, session_id: str, settings: Settings
 ) -> AsyncGenerator[str, None]:
-
-    prompt = PromptTemplate.from_template(
-        """<|user|>\nAnswer the question based only on the following context:
-{context} 
-Question: {question} <|end|>\n<|assistant|>"""
+        
+    prompt = get_prompt(
+        message=message,
+        chat_history=chat_memory
     )
-
-    # chain = prompt | llm  # type: ignore
-
-    # response = ""
-    # async for token in chain.astream({"context": context, "question": message}):  # type: ignore
-    #     yield token.content
-    #     response += token.content
     
-    response_chunks = llm.generate(prompt, context=context, question=message)
     response = ""
-    
-    async for chunk in response_chunks:
-        response += chunk
-        yield chunk
+    streamer = llm.generate(prompt, context=context, question=message)
+        
+    async for token in streamer:
+        response += token
+        yield token
+        await asyncio.sleep(0.001)
+            
+    chat_history.store_chat(session_id=session_id, 
+                            user=message, 
+                            assistant=response)
 
-    chat_memory.add_user_message(message=message)
-    chat_memory.add_ai_message(message=response)
     
 async def generate_sse_response(
     context: list[Document],
@@ -137,7 +116,8 @@ Question: {question} <|end|>\n<|assistant|>"""
         async for token in llm.generate(prompt, context=context, question=message):
             yield SSEResponse(type="streaming", value=token).json()
             response += token
-            print(response)
+            await asyncio.sleep(0.01)
+            # print(token)
 
         yield SSEResponse(type="end", value="").json()
         chat_memory.add_user_message(message=message)
@@ -152,13 +132,7 @@ async def chat(
     memory_key = f"./message_store/{request.session_id}.json"
     logging.info(f"Received message: {request.message}")
 
-    chat_memory = FileChatMessageHistory(file_path=memory_key)
-    memory = ConversationBufferMemory(chat_memory=chat_memory, return_messages=False)
-
-    logging.info(f"Generating standalone question for: {request.message}")
-    # standalone_question = await generate_standalone_question(
-    #     chat_history=memory.buffer, question=request.message, settings=settings
-    # )
+    
     
     # logging.info(f"Searching for relevant documents for: {standalone_question}")
 
@@ -169,12 +143,15 @@ async def chat(
     combined_documents = "You are an expert in all the fields. You can answer any question."
 
     logging.info(f"Generating response for: {request.message}")
-
+    
+    
     return StreamingResponse(
         generate_response(
             context=combined_documents,
-            chat_memory=chat_memory,
+            chat_memory=chat_history.get_history(
+                request.session_id, limit=5),
             message=request.message,
+            session_id=request.session_id,
             settings=settings,
         ),
         media_type="text/plain",
@@ -206,3 +183,22 @@ async def chat_sse(
         media_type="text/event-stream",
         headers={"X-Accel-Buffering": "no"}
     )
+    
+    
+@app.get("/chat/history/{session_id}")
+async def get_chat_history(session_id: str):
+    history = await chat_history.get_history(session_id)
+    return {"session_id": session_id, "history": history}
+
+@app.get("/models")
+async def get_models(
+    settings: Settings = Depends(get_settings)
+):
+    assert llm is not None
+    
+    return {"id": settings.backend_type + " default model"
+                if settings.model_path == ""
+                else settings.model_path,
+                "object": "model",
+                "owned_by": "me",
+                "permissions": [],}

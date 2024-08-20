@@ -32,40 +32,41 @@
 # # Print the result
 # print(result)
 
+#########################################################################################
 
-from pprint import pprint
-import httpx
-import asyncio
+# from pprint import pprint
+# import httpx
+# import asyncio
 
-async def stream_chat_sse_response():
-    timeout = httpx.Timeout(10.0, connect=5.0, read=None)  # Set `read` to None for no timeout during streaming
-    try:
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            # Replace this URL with your FastAPI server URL
-            url = "http://localhost:8046/chat/sse/"
+# async def stream_chat_sse_response():
+#     timeout = httpx.Timeout(10.0, connect=5.0, read=None)  # Set `read` to None for no timeout during streaming
+#     try:
+#         async with httpx.AsyncClient(timeout=timeout) as client:
+#             # Replace this URL with your FastAPI server URL
+#             url = "http://localhost:8046/chat/sse/"
             
-            # Data to send in the request
-            data = {
-                "session_id": "test_session",
-                "message": "How to cook Bun Cha in Vietnam?"
-            }
+#             # Data to send in the request
+#             data = {
+#                 "session_id": "test_session",
+#                 "message": "How to cook Bun Cha in Vietnam?"
+#             }
 
-            # Send the POST request and stream the response
-            async with client.stream("POST", url, json=data) as response:
-                # Check if the response status is 200 OK
-                response.raise_for_status()
-                async for chunk in response.aiter_text():
-                    if chunk:
-                        print(chunk, end="\n")
-    except httpx.HTTPStatusError as exc:
-        print(f"HTTP error occurred: {exc}")
-    except httpx.RequestError as exc:
-        print(f"An error occurred while requesting: {exc}")
-    except httpx.ReadTimeout:
-        print("The request timed out while reading the response.")
-    except Exception as exc:
-        print(f"An unexpected error occurred: {exc}")
+#             # Send the POST request and stream the response
+#             async with client.stream("POST", url, json=data) as response:
+#                 # Check if the response status is 200 OK
+#                 response.raise_for_status()
+#                 async for chunk in response.aiter_text():
+#                     if chunk:
+#                         print(chunk, end="\n")
+#     except httpx.HTTPStatusError as exc:
+#         print(f"HTTP error occurred: {exc}")
+#     except httpx.RequestError as exc:
+#         print(f"An error occurred while requesting: {exc}")
+#     except httpx.ReadTimeout:
+#         print("The request timed out while reading the response.")
+#     except Exception as exc:
+#         print(f"An unexpected error occurred: {exc}")
 
-# Run the function to test streaming
-print("\n\nStreaming SSE response:")
-asyncio.run(stream_chat_sse_response())
+# # Run the function to test streaming
+# print("\n\nStreaming SSE response:")
+# asyncio.run(stream_chat_sse_response())

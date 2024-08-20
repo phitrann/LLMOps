@@ -98,7 +98,7 @@ docker exec -it ollama ollama run phi3:instruct
 
 4. Set up the MongoDB database
 ```bash
-docker run -d -p 27017:27017 --name mongodb mongo
+docker compose -f docker/docker-compose.mongo.yaml up -d
 ```
 
 
@@ -121,6 +121,12 @@ python scripts/download_model.py
 3. Start the server
 ```bash
 ./scripts/start_server.sh
+
+# # Start FastAPI server
+# uvicorn app.api.main:app --host 0.0.0.0 --port 8046 --reload
+
+# # Start Gradio app
+# python -m app.frontend.gradio_app # gradio app/frontend/gradio_app.py
 ```
 
 4. Initialize the database

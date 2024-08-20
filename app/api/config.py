@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql://user:password@localhost/dbname"
     HOST: str = Field(default="localhost", description="API address")
     PORT: int = Field(default=8046, description="API port")
+    CHAT_HISTORY_LIMIT: int = Field(default=10, description="Number of recent messages to include in chat history")
     
     VERBOSE: bool = False
     TIMINGS: bool = False

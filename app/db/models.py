@@ -1,13 +1,8 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime
-from sqlalchemy.ext.declarative import declarative_base
-import datetime
+from pydantic import BaseModel
+from datetime import datetime
 
-Base = declarative_base()
-
-class InferenceHistory(Base):
-    __tablename__ = "inference_history"
-
-    id = Column(Integer, primary_key=True, index=True)
-    input_text = Column(Text, nullable=False)
-    result_text = Column(Text, nullable=False)
-    timestamp = Column(DateTime, default=datetime.datetime.utcnow)
+class ChatMessage(BaseModel):
+    session_id: str
+    timestamp: datetime
+    user_message: str
+    bot_response: str
