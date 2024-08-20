@@ -11,62 +11,62 @@ This project uses FastAPI for the backend API, Gradio for the frontend, and Hugg
 ├── /app
 │   ├── /api
 │   │   ├── __init__.py
-│   │   ├── main.py               # Điểm vào của FastAPI, định nghĩa các routes chính
-│   │   ├── models.py             # Định nghĩa các schema dữ liệu cho API
-│   │   ├── config.py             # Cấu hình cho ứng dụng (env variables, constants, etc.)
-│   │   └── utils.py              # Các hàm tiện ích dùng chung
+│   │   ├── main.py               # FastAPI endpoints, define API routes
+│   │   ├── models.py             # Pydantic models for request and response
+│   │   ├── config.py             # Configuration settings for the app
+│   │   └── utils.py              # Utility functions for API
 │   ├── /inference
 │   │   ├── __init__.py
-│   │   ├── model.py              # Chứa logic để tải và chạy inference mô hình LLM
-│   │   ├── tokenizer.py          # Xử lý mã hóa và giải mã văn bản
-│   │   └── pipeline.py           # Định nghĩa pipeline xử lý từ input đến output
+│   │   ├── model.py              # Logic for loading and infer LLM model
+│   │   └── pipeline.py           # Pipeline for processing input and output (tokenization, post-processing)
 │   ├── /frontend
 │   │   ├── __init__.py
-│   │   ├── gradio_app.py         # Cấu hình và chạy Gradio app
-│   │   └── components.py         # Các thành phần UI của Gradio
+│   │   └── gradio_app.py         # UI implementation using Gradio
 │   ├── /db
 │   │   ├── __init__.py
-│   │   ├── database.py           # Kết nối và tương tác với database (PostgreSQL/MongoDB)
-│   │   ├── models.py             # Định nghĩa các models cho ORM
-│   │   └── history.py            # Xử lý lưu trữ và truy xuất lịch sử truy vấn
+│   │   ├── database.py           # Database connection and session management
+│   │   ├── models.py             # Pydantic models for database
+│   │   ├── vectordb.py           # Vector database for storing embeddings (future work)
+│   │   └── history.py            # Logic for saving and retrieving chat history
 │   ├── /tests
-│   │   ├── test_api.py           # Unit test cho API
-│   │   ├── test_inference.py     # Unit test cho mô hình và pipeline
-│   │   ├── test_gradio.py        # Unit test cho Gradio frontend
-│   │   └── test_db.py            # Unit test cho database và lịch sử
-│   └── main.py                   # Điểm vào chính cho việc chạy toàn bộ ứng dụng
+│   │   ├── test_api.py           # Unit test for API
+│   │   ├── test_inference.py     # Unit test for LLM inference
+│   │   ├── test_gradio.py        # Unit test for Gradio frontend
+│   │   └── test_db.py            # Unit test for database
+│   └── main.py                   # Main entry point for the app
 ├── /scripts
-│   ├── download_model.py         # Script tải về mô hình từ Hugging Face
-│   ├── start_server.sh           # Script để khởi động server (FastAPI, Gradio)
-│   └── init_db.py                # Script khởi tạo và thiết lập database
+│   ├── download_model.py         # Script for downloading LLM model
+│   ├── start_server.sh           # Script for starting server
+│   └── init_db.py                # Script for initializing database (future work)
 ├── /docker
-│   ├── Dockerfile                # Định nghĩa Dockerfile cho ứng dụng
-│   ├── docker-compose.yml        # Định nghĩa Docker Compose cho toàn bộ hệ thống
+│   ├── Dockerfile                # Dockerfile for building the app image
 │   └── /k8s
-│       ├── deployment.yaml       # Cấu hình Kubernetes Deployment
-│       └── service.yaml          # Cấu hình Kubernetes Service
-├── .env                          # Tập tin cấu hình biến môi trường
-├── .gitignore                    # Định nghĩa các file và thư mục cần bỏ qua khi commit git
-├── requirements.txt              # Liệt kê các dependencies Python cần thiết
-└── README.md                     # Hướng dẫn cài đặt và sử dụng dự án
+│       ├── deployment.yaml       # Define Kubernetes Deployment
+│       └── service.yaml          # Define Kubernetes Service
+├── .env                          # Configuration file for environment variables
+├── .gitignore                    # Files and directories to be ignored by Git
+|── .dockerignore                 # Files and directories to be ignored by Docker
+├── docker-compose.yml            # Docker Compose configuration
+|── setup.py                      # Setup file for packaging the app
+|── generate_tree.py              # Script for generating project skeleton
+├── requirements.txt              # Python dependencies
+└── README.md                     # This file
 ```
 
 __Main components__:
-1. __/app__: Thư mục chính chứa toàn bộ mã nguồn của ứng dụng.
-    - __/api__: Xử lý các endpoint của FastAPI, cung cấp API cho ứng dụng.
-    - __/inference__: Chứa logic liên quan đến mô hình LLM, từ việc tải mô hình, chạy inference đến pipeline xử lý.
-    - __/frontend__: Chứa cấu hình và logic liên quan đến Gradio, nơi mà bạn sẽ thiết kế giao diện người dùng.
-    - __/db__: Quản lý kết nối với database, định nghĩa các model và thao tác với lịch sử truy vấn.
-    - __/tests__: Chứa các unit test cho từng thành phần của ứng dụng.
-2. __/scripts__: Các script tiện ích để quản lý dự án như tải mô hình, khởi động server, và khởi tạo database.
+1. __/app__: The main application directory, containing the core logic of the app.
+    - __/api__: Holds the FastAPI endpoints, including API routes, request/response models, and utility functions.
+    - __/inference__: Contains the logic for loading and inferring the LLM model, as well as the pipeline for processing input and output.
+    - __/frontend__: Contains the UI implementation using Gradio.
+    - __/db__: Contains the database connection and session management, Pydantic models for database, and logic for saving and retrieving chat history.
+    - __/tests__: Contains unit tests for the API, LLM inference, Gradio frontend, and database.
+2. __/scripts__: Scripts for downloading the LLM model, starting the server, and initializing the database (future work).
+3. __/docker__: Contains the Dockerfile for building the app image and Kubernetes configuration files.
 
-3. __/docker__: Chứa các file cấu hình liên quan đến Docker và Kubernetes để đóng gói và triển khai ứng dụng.
+4. __.env__: Configuration file for environment variables, including the MongoDB connection string, LLM model path, and Gradio port.
 
-4. __.env__: File cấu hình chứa các biến môi trường, như thông tin kết nối database, API keys,...
-
-5. __requirements.txt__: Danh sách các thư viện Python cần thiết cho dự án.
-
-6. __README.md__: Hướng dẫn sử dụng dự án, bao gồm cách cài đặt, chạy ứng dụng, và cách triển khai.
+5. __requirements.txt__: Python dependencies for the project.
+6. __README.md__: Project documentation.
 
 ## Models
 - The model used in this project is `microsoft/Phi-3-mini-4k-instruct`. Phi-3 Mini is a 3.8B parameters, lightweight, state-of-the-art open model trained with the Phi-3 datasets that includes both synthetic data and the filtered publicly available websites data with a focus on high-quality and reasoning dense properties.
@@ -77,6 +77,8 @@ __Main components__:
 - Gradio: A Python library that allows you to quickly create UIs for your machine learning models.
 - Langchain: A Python library that provides components for building conversational AI systems.
 - Ollama: Serving for LLM inference.
+- ONNX: Open Neural Network Exchange (ONNX) is an open-source format for AI models, allowing interoperability between different frameworks.
+- MongoDB: A NoSQL database that stores data in flexible, JSON-like documents.
 
 
 ## Requirements
@@ -95,12 +97,6 @@ docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
 ```bash
 docker exec -it ollama ollama run phi3:instruct
 ```
-
-4. Set up the MongoDB database
-```bash
-docker compose -f docker/docker-compose.mongo.yaml up -d
-```
-
 
 ### Installation
 
